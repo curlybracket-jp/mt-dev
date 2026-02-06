@@ -74,4 +74,5 @@ volumes:
   support:
     driver: local
   mt-dev-mt-home-tmp:
+    name: ${COMPOSE_PROJECT_NAME:-mt-dev}-mt-home-tmp
     external: true

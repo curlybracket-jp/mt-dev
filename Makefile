@@ -57,6 +57,7 @@ export MT_UID
 export MAILPIT_EXPOSE_PORT
 export PLACKUP
 export CMD
+export COMPOSE_PROJECT_NAME
 
 # mt-watcher container
 export DISABLE_MT_WATCHER
@@ -66,6 +67,8 @@ export PERL_FNS_NO_OPT
 # override variables
 ENV_FILE=.env
 -include ${MAKEFILE_DIR}/${ENV_FILE}
+
+_MT_HOME_TMP_VOLUME=$(or ${COMPOSE_PROJECT_NAME},mt-dev)-mt-home-tmp
 
 
 # setup internal variables
@@ -132,13 +135,13 @@ endif
 
 up-common: down fixup update-ssl
 	${MAKE} down-mt-home-volume
-	${DOCKER} volume create --label mt-dev-mt-home-tmp mt-dev-mt-home-tmp
+	${DOCKER} volume create --label ${_MT_HOME_TMP_VOLUME} ${_MT_HOME_TMP_VOLUME}
 
 ifneq (${ARCHIVE},)
 ifeq (${RECIPE},)
 	# TBD: random name?
 	$(eval MT_HOME_PATH=mt-dev-mt-home-tmp)
-	${MAKEFILE_DIR}/bin/extract-archive ${BASE_ARCHIVE_PATH} ${MT_HOME_PATH} $(shell echo ${ARCHIVE} | tr ',' ' ')
+	${MAKEFILE_DIR}/bin/extract-archive ${BASE_ARCHIVE_PATH} ${_MT_HOME_TMP_VOLUME} $(shell echo ${ARCHIVE} | tr ',' ' ')
 endif
 endif
 
@@ -192,7 +195,7 @@ down:
 	${MAKE} down-mt-home-volume
 
 down-mt-home-volume:
-	@for v in `docker volume ls -f label=mt-dev-mt-home-tmp | sed -e '1d' | awk '{print $$2}'`; do \
+	@for v in `docker volume ls -f label=${_MT_HOME_TMP_VOLUME} | sed -e '1d' | awk '{print $$2}'`; do \
 		docker volume rm $$v; \
 	done
 
